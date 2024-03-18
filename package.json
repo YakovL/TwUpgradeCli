@@ -1,0 +1,11 @@
+{
+  "name": "tw-upgrade-cli",
+  "version": "0.0.0",
+  "description": "A cli to update TiddlyWiki Classic from its official site",
+  "keywords": [
+    "TiddlyWiki Classic"
+  ],
+  "author": "Yakov Litvin",
+  "main": "index.js",
+  "license": "MIT"
+}
