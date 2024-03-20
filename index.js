@@ -44,8 +44,11 @@ const upgradeTw = async (twPath) => {
         `Could not find storeArea in the ${!boundariesInLatest ? 'latest TW' : `TW to upgrade (${absoluteTwPath})`}`
     )
 
+    const titleRe = /<title>(.+?)<\/title>/sm
+    const title = titleRe.exec(twContent)[0]
     const upgradedContent =
         latestTwResponse.substring(0, boundariesInLatest.start)
+            .replace(titleRe, title)
         + twContent.substring(boundariesInCurrent.start, boundariesInCurrent.end)
         + latestTwResponse.substring(boundariesInLatest.end)
 
