@@ -1,6 +1,6 @@
 {
   "name": "tw-upgrade-cli",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A cli to update TiddlyWiki Classic from its official site",
   "keywords": [
     "TiddlyWiki Classic"
