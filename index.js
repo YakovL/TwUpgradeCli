@@ -3,7 +3,7 @@ const fs = require('fs')
 const path = require('path')
 
 const exitWithError = (message) => {
-    console.error(message)
+    console.error('⚠️  Error: ' + message)
     process.exit(1)
 }
 
