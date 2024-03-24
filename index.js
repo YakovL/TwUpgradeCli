@@ -18,13 +18,11 @@ if (inputFlagIndex === -1 || inputFlagIndex === args.length - 1) exitWithError(
 )
 const providedTwPath = args[inputFlagIndex + 1]
 
-const upgradeTw = async (twPath) => {
-    const absoluteTwPath = path.resolve(twPath)
-
-    const twContent = fs.readFileSync(absoluteTwPath).toString()
-
-    const latestTwRequest = await fetch('https://classic.tiddlywiki.com/upgrade')
-    const latestTwResponse = await latestTwRequest.text()
+// this function is the only one supposed to be aware of TW file format
+const upgradeTwFromSource = (twToUpgradeHtml, newVersionHtml) => {
+    // TODO: make sure the bits updated by updateLanguageAttribute are kept as well
+    // TODO: reuse code from core (like replaceChunk, or even the whole updateOriginal)
+    //  or implement upgrading inside a headless browser (will be slower, but allow not to duplicate core functionality)
 
     const getStoreAreaBoundaries = (twContent) => {
         const beforeStoreAreaMarker = '<!--POST-SHADOWAREA-->'
@@ -38,14 +36,12 @@ const upgradeTw = async (twPath) => {
         }
     }
 
-    const boundariesInLatest = getStoreAreaBoundaries(latestTwResponse)
-    const boundariesInCurrent = getStoreAreaBoundaries(twContent)
+    const boundariesInLatest = getStoreAreaBoundaries(newVersionHtml)
+    const boundariesInCurrent = getStoreAreaBoundaries(twToUpgradeHtml)
     if(!boundariesInLatest || !boundariesInCurrent) exitWithError(
         `Could not find storeArea in the ${!boundariesInLatest ? 'latest TW' : `TW to upgrade (${absoluteTwPath})`}`
     )
 
-    const titleRe = /<title>(.+?)<\/title>/sm
-    const title = titleRe.exec(twContent)[0]
     const updateMarkupBlock = (html, htmlWithNewBlock, markerPart) => {
         const blockRe = new RegExp(
             `<!--${markerPart}-START-->(.+?)<!--${markerPart}-END-->`,
@@ -57,17 +53,34 @@ const upgradeTw = async (twPath) => {
     // POST-BODY is not used by the core (POST-SCRIPT is), keep for forward compatibility
     const blocksToUpdate = ['PRE-HEAD', 'POST-HEAD', 'PRE-BODY', 'POST-SCRIPT', 'POST-BODY']
 
+    const titleRe = /<title>(.+?)<\/title>/sm
+    const title = titleRe.exec(twToUpgradeHtml)[0]
+
     // extract storeArea from the old TW, insert into the new one; repopulated title, markup blocks
     let upgradedContent =
-        latestTwResponse.substring(0, boundariesInLatest.start)
+        newVersionHtml.substring(0, boundariesInLatest.start)
             .replace(titleRe, title)
-        + twContent.substring(boundariesInCurrent.start, boundariesInCurrent.end)
-        + latestTwResponse.substring(boundariesInLatest.end)
+        + twToUpgradeHtml.substring(boundariesInCurrent.start, boundariesInCurrent.end)
+        + newVersionHtml.substring(boundariesInLatest.end)
     for(const blockName of blocksToUpdate) {
-        upgradedContent = updateMarkupBlock(upgradedContent, twContent, blockName)
+        upgradedContent = updateMarkupBlock(upgradedContent, twToUpgradeHtml, blockName)
     }
+
+    return upgradedContent
+}
+
+const upgradeTwFile = async (twPath) => {
+    // this works with npx (path is resolved against cwd)
+    const absoluteTwPath = path.resolve(twPath)
+
+    const twContent = fs.readFileSync(absoluteTwPath).toString()
+
+    const latestTwRequest = await fetch('https://classic.tiddlywiki.com/upgrade')
+    const latestTwResponse = await latestTwRequest.text()
+
+    const upgradedContent = upgradeTwFromSource(twContent, latestTwResponse)
 
     fs.writeFileSync(absoluteTwPath, upgradedContent)
 }
 
-upgradeTw(providedTwPath)
+upgradeTwFile(providedTwPath)
