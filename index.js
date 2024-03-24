@@ -46,11 +46,26 @@ const upgradeTw = async (twPath) => {
 
     const titleRe = /<title>(.+?)<\/title>/sm
     const title = titleRe.exec(twContent)[0]
-    const upgradedContent =
+    const updateMarkupBlock = (html, htmlWithNewBlock, markerPart) => {
+        const blockRe = new RegExp(
+            `<!--${markerPart}-START-->(.+?)<!--${markerPart}-END-->`,
+            'sm'
+        )
+        const match = blockRe.exec(htmlWithNewBlock)
+        return match ? html.replace(blockRe, match[0]) : html
+    }
+    // POST-BODY is not used by the core (POST-SCRIPT is), keep for forward compatibility
+    const blocksToUpdate = ['PRE-HEAD', 'POST-HEAD', 'PRE-BODY', 'POST-SCRIPT', 'POST-BODY']
+
+    // extract storeArea from the old TW, insert into the new one; repopulated title, markup blocks
+    let upgradedContent =
         latestTwResponse.substring(0, boundariesInLatest.start)
             .replace(titleRe, title)
         + twContent.substring(boundariesInCurrent.start, boundariesInCurrent.end)
         + latestTwResponse.substring(boundariesInLatest.end)
+    for(const blockName of blocksToUpdate) {
+        upgradedContent = updateMarkupBlock(upgradedContent, twContent, blockName)
+    }
 
     fs.writeFileSync(absoluteTwPath, upgradedContent)
 }
