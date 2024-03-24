@@ -72,6 +72,8 @@ const upgradeTwFromSource = (twToUpgradeHtml, newVersionHtml) => {
 const upgradeTwFile = async (twPath) => {
     // this works with npx (path is resolved against cwd)
     const absoluteTwPath = path.resolve(twPath)
+    if(!fs.existsSync(absoluteTwPath)) exitWithError(`File ${absoluteTwPath} does not exist`)
+    if(!fs.statSync(absoluteTwPath).isFile()) exitWithError(`${absoluteTwPath} is not a file`)
 
     const twContent = fs.readFileSync(absoluteTwPath).toString()
 
