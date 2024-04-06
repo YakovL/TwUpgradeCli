@@ -77,10 +77,15 @@ const upgradeTwFile = async (twPath) => {
 
     const twContent = fs.readFileSync(absoluteTwPath).toString()
 
-    const latestTwRequest = await fetch('https://classic.tiddlywiki.com/upgrade')
-    const latestTwResponse = await latestTwRequest.text()
+    let latestTwHtml
+    try {
+        const latestTwRequest = await fetch('https://classic.tiddlywiki.com/upgrade')
+        latestTwHtml = await latestTwRequest.text()
+    } catch (error) {
+        exitWithError(`Failed to fetch latest TW: ${error.message}`)
+    }
 
-    const upgradedContent = upgradeTwFromSource(twContent, latestTwResponse)
+    const upgradedContent = upgradeTwFromSource(twContent, latestTwHtml)
 
     fs.writeFileSync(absoluteTwPath, upgradedContent)
 }
