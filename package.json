@@ -8,6 +8,7 @@
   "author": "Yakov Litvin",
   "main": "index.js",
   "bin": {
+    "split-command": "split.js",
     "upgrade-command": "index.js"
   },
   "license": "MIT"
