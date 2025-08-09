@@ -101,8 +101,10 @@ const extractTiddlersFromHtml = (htmlContent) => {
     // Find the storeArea element first
     const storeArea = document.getElementById('storeArea')
     if (!storeArea) {
-        console.warn('Warning: #storeArea not found in the TiddlyWiki file')
-        return tiddlers
+        return {
+            warning: '#storeArea not found in the TiddlyWiki file',
+            tiddlers,
+        }
     }
     
     // Find all DIV elements with title attribute that are direct children of #storeArea
@@ -124,12 +126,13 @@ const extractTiddlersFromHtml = (htmlContent) => {
                 const tiddler = extractTiddlerFromNode(node, title)
                 tiddlers.push(tiddler)
             } catch(error) {
-                console.warn(`Warning: Failed to extract tiddler "${title}": ${error.message}`)
+                // Store extraction errors for caller to handle
+                tiddlers.push({ error: `Failed to extract tiddler "${title}": ${error.message}`, title })
             }
         }
     })
     
-    return tiddlers
+    return { tiddlers }
 }
 
 module.exports = {

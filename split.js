@@ -59,45 +59,67 @@ const loadTwFile = (twPath, outputPath) => {
     } else {
         try {
             fs.mkdirSync(absoluteOutputPath, { recursive: true })
-            console.log(`Created output directory: ${absoluteOutputPath}`)
         } catch (error) {
             exitWithError(`Failed to create output directory ${absoluteOutputPath}: ${error.message}`)
         }
     }
     
-    console.log(`Loading TiddlyWiki file: ${absoluteTwPath}`)
-    console.log(`Output directory: ${absoluteOutputPath}`)
-    
     try {
         const twContent = fs.readFileSync(absoluteTwPath, 'utf8')
-        console.log(`Successfully loaded TiddlyWiki file (${twContent.length} characters)`)
         
-        console.log('Extracting tiddlers...')
-        const tiddlers = extractTiddlersFromHtml(twContent)
-        console.log(`Found ${tiddlers.length} tiddlers`)
-        
-        // Display summary of extracted tiddlers
-        if(tiddlers.length > 0) {
-            console.log('\nTiddlers found:')
-            tiddlers.forEach((tiddler, index) => {
-                const textPreview = tiddler.text.length > 50 
-                    ? tiddler.text.substring(0, 50) + '...' 
-                    : tiddler.text
-                console.log(`  ${index + 1}. "${tiddler.title}" (${tiddler.text.length} chars) - ${textPreview.replace(/\n/g, ' ')}`)
-            })
-        } else {
-            console.log('\nNo tiddlers found.')
+        return {
+            twContent,
+            absoluteTwPath,
+            absoluteOutputPath
         }
-        
-        // TODO: Create individual .tid files for each tiddler in ${absoluteOutputPath}
-        // TODO: Organize output into a directory structure
-        
-        console.log('\nTiddler extraction complete. .tid file creation not yet implemented.')
-        return { content: twContent, tiddlers: tiddlers }
     } catch (error) {
         exitWithError(`Failed to read file: ${error.message}`)
     }
 }
 
-// Execute the main function
-loadTwFile(providedTwPath, providedOutputPath)
+(function main() {    
+    console.log(`Loading TiddlyWiki file: ${providedTwPath}`)
+    console.log(`Output directory: ${providedOutputPath}`)
+
+    const { twContent, absoluteTwPath, absoluteOutputPath } = loadTwFile(providedTwPath, providedOutputPath)
+
+    if (absoluteOutputPath !== path.resolve(providedOutputPath)) {
+        console.log(`Created output directory: ${absoluteOutputPath}`)
+    }
+    console.log(`Successfully loaded TiddlyWiki file from ${absoluteTwPath} (${twContent.length} characters)`)
+
+    console.log('Extracting tiddlers...')
+    const { tiddlers, warning } = extractTiddlersFromHtml(twContent)
+    if (warning) {
+        console.warn(`Warning: ${warning}`)
+    }
+
+    // for problematic tiddlers, warn and skip
+    const validTiddlers = tiddlers.filter(tiddler => {
+        if (tiddler.error) {
+            console.warn(`Warning: ${tiddler.error}`)
+            return false
+        }
+        return true
+    })
+    
+    console.log(`Found ${validTiddlers.length} tiddlers`)
+    
+    // Display summary of extracted tiddlers
+    if (validTiddlers.length > 0) {
+        console.log('\nTiddlers found:')
+        validTiddlers.forEach((tiddler, index) => {
+            const textPreview = tiddler.text.length > 50 
+                ? tiddler.text.substring(0, 50) + '...' 
+                : tiddler.text
+            console.log(`  ${index + 1}. "${tiddler.title}" (${tiddler.text.length} chars) - ${textPreview.replace(/\n/g, ' ')}`)
+        })
+    } else {
+        console.log('\nNo tiddlers found.')
+    }
+    
+    // TODO: Create individual .tid files for each tiddler in ${absoluteOutputPath}
+    // TODO: Organize output into a directory structure
+    
+    console.log('\nTiddler extraction complete. .tid file creation not yet implemented.')
+})()
