@@ -20,31 +20,58 @@ const exitWithError = (message) => {
 const args = process.argv.slice(2)
 
 const inputFlagName = '--input'
+const outputFlagName = '--output'
 const inputFlagPlaceholder = '<file_path>'
-const inputFlagIndex = args.indexOf(inputFlagName)
+const outputFlagPlaceholder = '<output_directory>'
 
+const inputFlagIndex = args.indexOf(inputFlagName)
+const outputFlagIndex = args.indexOf(outputFlagName)
+
+// Validate input argument
 if (inputFlagIndex === -1 || inputFlagIndex === args.length - 1) exitWithError(
-    `Usage: node split.js ${inputFlagName} ${inputFlagPlaceholder}`
+    `Usage: node split.js ${inputFlagName} ${inputFlagPlaceholder} ${outputFlagName} ${outputFlagPlaceholder}`
+)
+
+// Validate output argument
+if (outputFlagIndex === -1 || outputFlagIndex === args.length - 1) exitWithError(
+    `Usage: node split.js ${inputFlagName} ${inputFlagPlaceholder} ${outputFlagName} ${outputFlagPlaceholder}`
 )
 
 const providedTwPath = args[inputFlagIndex + 1]
+const providedOutputPath = args[outputFlagIndex + 1]
 
-const loadTwFile = (twPath) => {
-    // Resolve the path relative to current working directory
+const loadTwFile = (twPath, outputPath) => {
+    // Resolve the paths relative to current working directory
     const absoluteTwPath = path.resolve(twPath)
+    const absoluteOutputPath = path.resolve(outputPath)
     
-    // Validate file existence and accessibility
+    // Validate input file existence and accessibility
     if(!fs.existsSync(absoluteTwPath)) exitWithError(`File ${absoluteTwPath} does not exist`)
     if(!fs.statSync(absoluteTwPath).isFile()) exitWithError(`${absoluteTwPath} is not a file`)
     
+    // Validate and prepare output directory
+    if(fs.existsSync(absoluteOutputPath)) {
+        if(!fs.statSync(absoluteOutputPath).isDirectory()) {
+            exitWithError(`Output path ${absoluteOutputPath} exists but is not a directory`)
+        }
+    } else {
+        try {
+            fs.mkdirSync(absoluteOutputPath, { recursive: true })
+            console.log(`Created output directory: ${absoluteOutputPath}`)
+        } catch (error) {
+            exitWithError(`Failed to create output directory ${absoluteOutputPath}: ${error.message}`)
+        }
+    }
+    
     console.log(`Loading TiddlyWiki file: ${absoluteTwPath}`)
+    console.log(`Output directory: ${absoluteOutputPath}`)
     
     try {
         const twContent = fs.readFileSync(absoluteTwPath, 'utf8')
         console.log(`Successfully loaded TiddlyWiki file (${twContent.length} characters)`)
         
         // TODO: Parse the TW content and extract tiddlers
-        // TODO: Create individual .tid files for each tiddler
+        // TODO: Create individual .tid files for each tiddler in ${absoluteOutputPath}
         // TODO: Organize output into a directory structure
         
         console.log('Split functionality not yet implemented. File loaded successfully.')
@@ -55,4 +82,4 @@ const loadTwFile = (twPath) => {
 }
 
 // Execute the main function
-loadTwFile(providedTwPath)
+loadTwFile(providedTwPath, providedOutputPath)
