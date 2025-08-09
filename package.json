@@ -11,5 +11,8 @@
     "split-command": "split.js",
     "upgrade-command": "index.js"
   },
+  "dependencies": {
+    "jsdom": "^23.0.0"
+  },
   "license": "MIT"
 }
