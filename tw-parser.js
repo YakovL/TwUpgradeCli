@@ -28,13 +28,16 @@ const unescapeLineBreaks = (str) => {
 }
 
 const convertFromYYYYMMDDHHMMSS = (dateStr) => {
-    if (!dateStr || dateStr.length !== 12) return new Date()
-    const year = parseInt(dateStr.substr(0, 4))
-    const month = parseInt(dateStr.substr(4, 2)) - 1 // Month is 0-based
-    const day = parseInt(dateStr.substr(6, 2))
-    const hour = parseInt(dateStr.substr(8, 2))
-    const minute = parseInt(dateStr.substr(10, 2))
-    return new Date(year, month, day, hour, minute)
+    const formatMatch = dateStr.match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})?(\d{3})?$/)
+    if(!formatMatch) return new Date()
+    const year = parseInt(formatMatch[1])
+    const month = parseInt(formatMatch[2]) - 1 // Month is 0-based
+    const day = parseInt(formatMatch[3])
+    const hour = parseInt(formatMatch[4])
+    const minute = parseInt(formatMatch[5])
+    const second = parseInt(formatMatch[6]) || 0
+    const millisecond = parseInt(formatMatch[7]) || 0
+    return new Date(year, month, day, hour, minute, second, millisecond)
 }
 
 const isStandardField = (fieldName) => {
