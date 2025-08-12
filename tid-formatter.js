@@ -36,13 +36,29 @@ const escapeLineBreaks = (value) => {
 
 /**
  * Formats a tiddler-like object into .tid file format (see extractTiddlerFromNode)
+ * @param {Object} tiddler - The tiddler-like object to format:
+ * ```
+ * {
+ *     title: string,
+ *     text: string,
+ *     creator: string,
+ *     modifier: string,
+ *     created: Date,
+ *     modified: Date,
+ *     tagsString: string, // non-parsed
+ *     fields: Object,
+ * }
+ * ```
+ * @returns {string} The formatted .tid file content
  */
 const formatTiddlerAsTid = (tiddler) => {
     const lines = []
 
-    // TODO: handle all the standard fields
     const standardFields = [
+        { name: 'created', formatter: formatTiddlyWikiDate },
+        { name: 'creator', formatter: escapeLineBreaks },
         { name: 'modified', formatter: formatTiddlyWikiDate },
+        { name: 'modifier', formatter: escapeLineBreaks },
     ]
 
     standardFields.forEach(({ name, formatter }) => {
