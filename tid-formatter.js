@@ -45,10 +45,10 @@ const formatTiddlerAsTid = (tiddler) => {
         { name: 'modified', formatter: formatTiddlyWikiDate },
     ]
 
-    standardFields.forEach(field => {
-        const value = tiddler[field.name]
+    standardFields.forEach(({ name, formatter }) => {
+        const value = tiddler[name]
         if(value) {
-            lines.push(`${field.name}: ${field.formatter(value)}`)
+            lines.push(`${name}: ${formatter(value)}`)
         }
     })
 
@@ -62,15 +62,11 @@ const formatTiddlerAsTid = (tiddler) => {
 }
 
 /**
- * Generates a safe filename from a tiddler title
+ * URL encode the title to handle special characters safely
  * @param {string} title - The tiddler title
  * @returns {string} A safe filename with .tid extension
  */
-const generateTidFilename = (title) => {
-    // URL encode the title to handle special characters safely
-    const encoded = encodeURIComponent(title)
-    return `${encoded}.tid`
-}
+const generateTidFilename = (title) => encodeURIComponent(title) + '.tid'
 
 module.exports = {
     formatTiddlerAsTid,
