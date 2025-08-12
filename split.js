@@ -77,20 +77,20 @@ const loadTwFile = (twPath, outputPath) => {
     }
 }
 
-(function main() {    
+(function main() {
     console.log(`Loading TiddlyWiki file: ${providedTwPath}`)
     console.log(`Output directory: ${providedOutputPath}`)
 
     const { twContent, absoluteTwPath, absoluteOutputPath } = loadTwFile(providedTwPath, providedOutputPath)
 
-    if (absoluteOutputPath !== path.resolve(providedOutputPath)) {
+    if(absoluteOutputPath !== path.resolve(providedOutputPath)) {
         console.log(`Created output directory: ${absoluteOutputPath}`)
     }
     console.log(`Successfully loaded TiddlyWiki file from ${absoluteTwPath} (${twContent.length} characters)`)
 
     console.log('Extracting tiddlers...')
     const { tiddlers, warning } = extractTiddlersFromHtml(twContent)
-    if (warning) {
+    if(warning) {
         console.warn(`Warning: ${warning}`)
     }
 
@@ -102,11 +102,11 @@ const loadTwFile = (twPath, outputPath) => {
         }
         return true
     })
-    
+
     console.log(`Found ${validTiddlers.length} tiddlers`)
-    
+
     // Display summary of extracted tiddlers
-    if (validTiddlers.length > 0) {
+    if(validTiddlers.length > 0) {
         console.log('\nTiddlers found:')
         validTiddlers.forEach((tiddler, index) => {
             const textPreview = tiddler.text.length > 50 
@@ -117,7 +117,7 @@ const loadTwFile = (twPath, outputPath) => {
     } else {
         console.log('\nNo tiddlers found.')
     }
-    
+
     // TODO: Create individual .tid files for each tiddler in ${absoluteOutputPath}
     // TODO: Organize output into a directory structure
     

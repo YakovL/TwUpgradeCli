@@ -45,46 +45,46 @@ const isStandardField = (fieldName) => {
 const extractTiddlerFromNode = (node, title) => {
     let text = null
     let e = node.firstChild
-    
-    if (node.getAttribute && node.getAttribute('tiddler')) {
+
+    if(node.getAttribute && node.getAttribute('tiddler')) {
         text = unescapeLineBreaks(getNodeText(e))
     } else {
-        while (e && e.nodeName !== 'PRE' && e.nodeName !== 'pre') {
+        while(e && e.nodeName !== 'PRE' && e.nodeName !== 'pre') {
             e = e.nextSibling
         }
-        if (e) {
+        if(e) {
             text = htmlDecode(e.innerHTML.replace(/\r/mg, ''))
         }
     }
-    
+
     const creator = node.getAttribute('creator') || ''
     const modifier = node.getAttribute('modifier') || ''
     const createdStr = node.getAttribute('created')
     const modifiedStr = node.getAttribute('modified')
     const created = createdStr ? convertFromYYYYMMDDHHMMSS(createdStr) : new Date()
     const modified = modifiedStr ? convertFromYYYYMMDDHHMMSS(modifiedStr) : created
-    const tags = node.getAttribute('tags') || ''
-    
+    const tagsString = node.getAttribute('tags') || ''
+
     // Extract custom fields
     const fields = {}
-    if (node.attributes) {
-        for (let i = 0; i < node.attributes.length; i++) {
+    if(node.attributes) {
+        for(let i = 0; i < node.attributes.length; i++) {
             const attr = node.attributes[i]
-            if (attr.specified && !isStandardField(attr.name)) {
+            if(attr.specified && !isStandardField(attr.name)) {
                 fields[attr.name] = unescapeLineBreaks(attr.value)
             }
         }
     }
-    
+
     return {
-        title: title,
+        title,
         text: text || '',
-        creator: creator,
-        modifier: modifier,
-        created: created,
-        modified: modified,
-        tags: tags,
-        fields: fields
+        creator,
+        modifier,
+        created,
+        modified,
+        tagsString,
+        fields
     }
 }
 
@@ -97,22 +97,22 @@ const extractTiddlersFromHtml = (htmlContent) => {
     const dom = new JSDOM(htmlContent)
     const document = dom.window.document
     const tiddlers = []
-    
+
     // Find the storeArea element first
     const storeArea = document.getElementById('storeArea')
-    if (!storeArea) {
+    if(!storeArea) {
         return {
             warning: '#storeArea not found in the TiddlyWiki file',
             tiddlers,
         }
     }
-    
+
     // Find all DIV elements with title attribute that are direct children of #storeArea
     const tiddlerNodes = storeArea.querySelectorAll(':scope > div[title]')
-    
+
     tiddlerNodes.forEach(node => {
         let title = node.getAttribute('title')
-        
+
         // If no title attribute, try to get from id (with store prefix)
         if(!title && node.id) {
             const storePrefix = 'store'  // Default TiddlyWiki store prefix
@@ -120,7 +120,7 @@ const extractTiddlersFromHtml = (htmlContent) => {
                 title = node.id.substring(storePrefix.length)
             }
         }
-        
+
         if(title) {
             try {
                 const tiddler = extractTiddlerFromNode(node, title)
@@ -131,7 +131,7 @@ const extractTiddlersFromHtml = (htmlContent) => {
             }
         }
     })
-    
+
     return { tiddlers }
 }
 

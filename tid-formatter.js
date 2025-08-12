@@ -25,7 +25,7 @@ const formatTiddlyWikiDate = (date) => {
 }
 
 /**
- * Escapes line breaks in field values for .tid format
+ * Subsitutes line breaks (\n, \r) with escaped versions (\\n, \\r)
  * @param {string} value - The value to escape
  * @returns {string} The escaped value
  */
@@ -35,7 +35,7 @@ const escapeLineBreaks = (value) => {
 }
 
 /**
- * Formats a tiddler object into .tid file format
+ * Formats a tiddler-like object into .tid file format (see extractTiddlerFromNode)
  */
 const formatTiddlerAsTid = (tiddler) => {
     const lines = []
@@ -47,11 +47,17 @@ const formatTiddlerAsTid = (tiddler) => {
 
     standardFields.forEach(field => {
         const value = tiddler[field.name]
-        if (value) {
+        if(value) {
             lines.push(`${field.name}: ${field.formatter(value)}`)
         }
     })
-    
+
+    if(tiddler.tagsString) lines.push(`tags: ${escapeLineBreaks(tiddler.tagsString)}`)
+    lines.push(`title: ${tiddler.title}`)
+
+    lines.push('')
+    lines.push(tiddler.text || '')
+
     return lines.join('\n')
 }
 
