@@ -14,13 +14,13 @@ const getNodeText = (node) => {
     return node.textContent || node.innerText || ''
 }
 
+// repeats TW core: String.prototype.htmlDecode (until it's reusable)
 const htmlDecode = (str) => {
     return str
-        .replace(/&amp;/g, '&')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
+        .replace(/&lt;/mg, '<')
+        .replace(/&gt;/mg, '>')
+        .replace(/&quot;/mg, '"')
+        .replace(/&amp;/mg, '&')  // This must be last to avoid double-decoding
 }
 
 const unescapeLineBreaks = (str) => {
