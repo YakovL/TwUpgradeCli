@@ -71,6 +71,13 @@ const formatTiddlerAsTid = (tiddler) => {
     if(tiddler.tagsString) lines.push(`tags: ${escapeLineBreaks(tiddler.tagsString)}`)
     lines.push(`title: ${tiddler.title}`)
 
+    Object.keys(tiddler.fields).forEach(fieldName => {
+        const fieldValue = tiddler.fields[fieldName]
+        if(fieldValue !== undefined && fieldValue !== null) {
+            lines.push(`${fieldName}: ${escapeLineBreaks(fieldValue.toString())}`)
+        }
+    })
+
     lines.push('')
     lines.push(tiddler.text || '')
 
