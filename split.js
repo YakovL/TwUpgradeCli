@@ -123,6 +123,8 @@ const loadTwFile = (twPath, outputPath) => {
         console.log('=' .repeat(50))
 
         let successCount = 0
+        let errors = []
+
         validTiddlers.forEach((tiddler) => {
             const filename = generateTidFilename(tiddler.title)
             const tidContent = formatTiddlerAsTid(tiddler)
@@ -131,13 +133,23 @@ const loadTwFile = (twPath, outputPath) => {
             try {
                 fs.writeFileSync(filePath, tidContent, 'utf8')
                 successCount++
-                console.log(`✅ ${successCount}/${validTiddlers.length}: ${tiddler.title}`)
+                // Show progress every 50 tiddlers or for the last one
+                if (successCount % 50 === 0 || successCount === validTiddlers.length) {
+                    console.log(`📝 Progress: ${successCount}/${validTiddlers.length} tiddlers written...`)
+                }
             } catch (error) {
-                console.log(`❌ ${tiddler.title}: error: ${error}`)
+                errors.push({ title: tiddler.title, error })
             }
         })
 
+        // report results
         console.log(`\n🎉 Successfully wrote ${successCount}/${validTiddlers.length} .tid files to ${absoluteOutputPath}`)
+        if (errors.length > 0) {
+            console.log(`\n❌ ${errors.length} tiddlers failed to write:`)
+            errors.forEach(({ title, error }) => {
+                console.log(`   • ${title}: ${error}`)
+            })
+        }
     } else {
         console.log('\nNo tiddlers found.')
     }
