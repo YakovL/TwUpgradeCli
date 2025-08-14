@@ -107,19 +107,38 @@ const loadTwFile = (twPath, outputPath) => {
 
     // Display summary of extracted tiddlers
     if(validTiddlers.length > 0) {
-        console.log('\nTiddlers found:')
-        validTiddlers.forEach((tiddler, index) => {
-            const textPreview = tiddler.text.length > 50 
-                ? tiddler.text.substring(0, 50) + '...' 
-                : tiddler.text
-            console.log(`  ${index + 1}. "${tiddler.title}" (${tiddler.text.length} chars) - ${textPreview.replace(/\n/g, ' ')}`)
+        console.log('\nCleaning output directory and ensuring it exists...')
+        try {
+            if(fs.existsSync(absoluteOutputPath)) {
+                fs.rmSync(absoluteOutputPath, { recursive: true, force: true })
+            }
+            fs.mkdirSync(absoluteOutputPath, { recursive: true })
+            console.log(`✅ Output directory ready: ${absoluteOutputPath}`)
+        } catch (error) {
+            console.error(`❌ Failed to prepare output directory: ${error.message}`)
+            return
+        }
+
+        console.log('\nWriting .tid files...')
+        console.log('=' .repeat(50))
+
+        let successCount = 0
+        validTiddlers.forEach((tiddler) => {
+            const filename = generateTidFilename(tiddler.title)
+            const tidContent = formatTiddlerAsTid(tiddler)
+            const filePath = path.join(absoluteOutputPath, filename)
+
+            try {
+                fs.writeFileSync(filePath, tidContent, 'utf8')
+                successCount++
+                console.log(`✅ ${successCount}/${validTiddlers.length}: ${tiddler.title}`)
+            } catch (error) {
+                console.log(`❌ ${tiddler.title}: error: ${error}`)
+            }
         })
+
+        console.log(`\n🎉 Successfully wrote ${successCount}/${validTiddlers.length} .tid files to ${absoluteOutputPath}`)
     } else {
         console.log('\nNo tiddlers found.')
     }
-
-    // TODO: Create individual .tid files for each tiddler in ${absoluteOutputPath}
-    // TODO: Organize output into a directory structure
-    
-    console.log('\nTiddler extraction complete. .tid file creation not yet implemented.')
 })()
