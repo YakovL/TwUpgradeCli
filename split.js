@@ -12,6 +12,7 @@ const fs = require('fs')
 const path = require('path')
 
 const { extractTiddlersFromHtml } = require('./tw-parser')
+const { formatTiddlerAsTid, generateTidFilename } = require('./tid-formatter')
 
 const exitWithError = (message) => {
     console.error('⚠️  Error: ' + message)
