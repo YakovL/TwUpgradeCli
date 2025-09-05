@@ -143,6 +143,47 @@ const loadTwFile = (twPath, outputPath) => {
             }
         })
 
+        // Create split.recipe file
+        const recipePath = path.join(absoluteOutputPath, 'split.recipe')
+        try {
+            const recipeContent = validTiddlers
+                .sort((a, b) => {
+                    // Temporal custom sort to match original split.recipe sorting:
+                    // Uppercase letters first, then lowercase
+                    const titleA = a.title;
+                    const titleB = b.title;
+                    const len = Math.min(titleA.length, titleB.length);
+                    
+                    for (let i = 0; i < len; i++) {
+                        const charA = titleA.charCodeAt(i);
+                        const charB = titleB.charCodeAt(i);
+                        
+                        // If characters are the same, continue to next character
+                        if (charA === charB) continue;
+                        
+                        // Uppercase letters (65-90) come before lowercase (97-122)
+                        const isAUpper = charA >= 65 && charA <= 90;
+                        const isBUpper = charB >= 65 && charB <= 90;
+                        
+                        if (isAUpper && !isBUpper) return -1;
+                        if (!isAUpper && isBUpper) return 1;
+                        
+                        // If both are same case, do normal comparison
+                        return charA - charB;
+                    }
+                    
+                    // If we get here, one string is a prefix of the other
+                    return titleA.length - titleB.length;
+                })
+                .map(tiddler => `tiddler: ${generateTidFilename(tiddler.title)}`)
+                .join('\n\n')
+
+            fs.writeFileSync(recipePath, recipeContent, 'utf8')
+            console.log(`\n📄 Created recipe file: ${recipePath}`)
+        } catch (error) {
+            console.warn(`\n⚠️  Failed to create recipe file: ${error.message}`)
+        }
+
         // report results
         console.log(`\n🎉 Successfully wrote ${successCount}/${validTiddlers.length} .tid files to ${absoluteOutputPath}`)
         if (errors.length > 0) {
